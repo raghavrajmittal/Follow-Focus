@@ -3,7 +3,7 @@ import numpy as np
 from goprocam import GoProCamera
 from goprocam import constants
 import urllib.request
-import rotate
+import arduino_servo
 from threading import Thread
 import traceback
 
@@ -62,7 +62,7 @@ cap = cv2.VideoCapture("udp://127.0.0.1:10000")
 arduino = None
 
 try:
-    arduino = rotate.connect()
+    arduino = arduino_servo.connect()
 
     count = 0
 
@@ -90,7 +90,7 @@ try:
         if count > 10:
             if len(averages) > 0:
                 newSum = sum(averages)
-                rotate.rotate(arduino, newSum)
+                arduino_servo.rotate(arduino, newSum)
                 averages.pop(0)
         # Draw a rectangle around the bodies
         for (x, y, w, h) in bodies:
@@ -104,10 +104,10 @@ try:
     # When everything is done, release the capture
     cap.release()
     cv2.destroyAllWindows()
-    rotate.disconnect(arduino)
+    arduino_servo.disconnect(arduino)
 
 except Exception:
     traceback.print_exc()
     print("closing connection")
     if arduino:
-        rotate.disconnect(arduino)
+        arduino_servo.disconnect(arduino)
