@@ -6,10 +6,17 @@ import time
 #     global arduino
 #     arduino = serial.Serial(port, 9600)
 
-def rotate(arduino, direction, angle):
+def rotate(arduino, angle):
 
     time.sleep(1)
-    arduino.write(direction + str(angle))
+    
+    if len(angle) == 2:
+        angle = str(angle[0]) + "0" + str(angle[1])
+
+    if "00" in angle:
+        return
+
+    arduino.write(str(angle).encode())
 
 def connect(port = '/dev/cu.usbserial-DN01DQRE'):
     arduino = serial.Serial(port, 9600)

@@ -3,8 +3,20 @@ import numpy as np
 from goprocam import GoProCamera
 from goprocam import constants
 import urllib.request
+import rotate
+import thread
 
+def calculateMiddle(width, boxX, boxWidth):
+    return width - (boxX + boxWidth/float(2))
 
+def rotationCoordinates(angle):
+    const = 4
+    if angle > 0:
+        return "L" + str(int(abs(angle/float(const))))
+    else:
+        return "R" + str(int(abs(angle/float(const))))
+
+width = 863/float(2)
 
 #List of possible classifiers for GoPro recognition 
 classfiers = [
@@ -40,6 +52,8 @@ gpCam.gpControlSet(constants.Stream.BIT_RATE, constants.Stream.BitRate.B2_4Mbps)
 #Read media buffer from udp port
 cap = cv2.VideoCapture("udp://127.0.0.1:10000")
 
+arduino = rotate.connect()
+
 
 while True:
     # Capture frame-by-frame
@@ -56,6 +70,12 @@ while True:
         flags=cv2.CASCADE_SCALE_IMAGE
     )
 
+    for (x,y,w,h) in bodies:
+        diff = calculateMiddle(width, x, w)
+        angle = rotationCoordinates(diff)
+        rotate.rotate(arduino, angle)
+        print(angle)
+        break
 
     # Draw a rectangle around the bodies
     for (x, y, w, h) in bodies:
@@ -69,14 +89,4 @@ while True:
 # When everything is done, release the capture
 cap.release()
 cv2.destroyAllWindows()
-
-
-def calculateMiddle(width, boxX, boxWidth):
-    return width/float(2) - (boxX + boxWidth/float(2))
-
-def rotatationCoordinates(angle):
-    const = 1
-    if angle < 0:
-        return "L" + str(abs(angle/float(const)))
-    else:
-        return "R" + str(abs(angle/float(const)))
+rotate.disconnect(arduino)
