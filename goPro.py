@@ -73,8 +73,11 @@ while True:
     for (x,y,w,h) in bodies:
         diff = calculateMiddle(width, x, w)
         angle = rotationCoordinates(diff)
-        rotate.rotate(arduino, angle)
-        print(angle)
+        try:
+            thread.start_new_thread(rotate.rotate(arduino, angle), ("Thread-1", 2))
+            print(angle)
+        except:
+            print("unable to thread")
         break
 
     # Draw a rectangle around the bodies
