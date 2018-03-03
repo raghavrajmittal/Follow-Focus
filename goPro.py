@@ -18,7 +18,7 @@ def rotationCoordinates(angle):
 
 width = 863/float(2)
 
-#List of possible classifiers for GoPro recognition 
+#List of possible classifiers for GoPro recognition
 classfiers = [
    "haarcascade_eye_tree_eyeglasses.xml" , #0
    "haarcascade_eye.xml" , #1
@@ -54,13 +54,14 @@ cap = cv2.VideoCapture("udp://127.0.0.1:10000")
 
 arduino = rotate.connect()
 
+countSent = 0
 
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
+
     #Classifier attributes
     bodies = bodyCascade.detectMultiScale(
         gray,
@@ -70,21 +71,25 @@ while True:
         flags=cv2.CASCADE_SCALE_IMAGE
     )
 
-    for (x,y,w,h) in bodies:
-        diff = calculateMiddle(width, x, w)
-        angle = rotationCoordinates(diff)
-        try:
-            Thread(target = rotate.rotate, args =(arduino, angle)).start()
-        except:
-            print("unable to thread")
-        break
+    countSent += 1
+    if countSent == 5:
+        countSent = 4
+        if len(bodies) > 0:
+            countSent = 0
+            (x,y,w,h) = sorted(bodies, key=lambda x: x[2], reverse=True)[0]
+            diff = calculateMiddle(width, x, w)
+            angle = rotationCoordinates(diff)
+            try:
+                Thread(target = rotate.rotate, args =(arduino, angle)).start()
+            except:
+                print("unable to thread")
 
     # Draw a rectangle around the bodies
     for (x, y, w, h) in bodies:
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
     # Display the resulting frame
     cv2.imshow("GoPro OpenCV", frame)
-    
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
