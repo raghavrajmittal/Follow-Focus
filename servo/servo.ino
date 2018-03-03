@@ -12,7 +12,6 @@ void setup() {
   Serial.begin(9600);
   pos = 90;
   myservo.write(pos);
-
 }
 
 void loop() {
@@ -30,7 +29,7 @@ void loop() {
       pos = pos - 1;
       myservo.write(pos);
       delay(10);
-      
+
     }
   }
 }
