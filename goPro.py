@@ -4,7 +4,7 @@ from goprocam import GoProCamera
 from goprocam import constants
 import urllib.request
 import rotate
-import thread
+from threading import Thread
 
 def calculateMiddle(width, boxX, boxWidth):
     return width - (boxX + boxWidth/float(2))
@@ -74,8 +74,7 @@ while True:
         diff = calculateMiddle(width, x, w)
         angle = rotationCoordinates(diff)
         try:
-            thread.start_new_thread(rotate.rotate(arduino, angle), ("Thread-1", 2))
-            print(angle)
+            Thread(target = rotate.rotate, args =(arduino, angle)).start()
         except:
             print("unable to thread")
         break

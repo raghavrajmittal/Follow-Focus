@@ -7,8 +7,8 @@ import time
 #     arduino = serial.Serial(port, 9600)
 
 def rotate(arduino, angle):
-
-    time.sleep(1)
+    print(angle)
+    #time.sleep(1)
     
     if len(angle) == 2:
         angle = str(angle[0]) + "0" + str(angle[1])
