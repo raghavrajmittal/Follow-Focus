@@ -4,15 +4,13 @@ import atexit
 
 arduino = None
 
-def rotate(arduino, angle):
-    if len(angle) == 2:
-        angle = str(angle[0]) + "0" + str(angle[1])
+def rotate(arduino, direction):
+    print(direction)
+    if direction > 0:
+        arduino.write(("L\n").encode())
 
-    if "00" in angle:
-        return
-
-    print("writing:", angle)
-    arduino.write((str(angle)+"\n").encode())
+    elif direction < 0:
+        arduino.write(("R\n").encode())
 
 def connect(port = '/dev/cu.usbserial-DN01DQRE'):
     global arduino

@@ -7,17 +7,23 @@ import rotate
 from threading import Thread
 import traceback
 
-def calculateMiddle(width, boxX, boxWidth):
-    return width - (boxX + boxWidth/float(2))
+averages = []
 
-def rotationCoordinates(angle):
-    const = 4
-    if angle > 20:
-        return "L" + str(int(abs(angle/float(const))))
-    elif angle < -20:
-        return "R" + str(int(abs(angle/float(const))))
+def rotateDegrees(boxX, boxWidth, width = 864):
+    # calculate middle
+    #  difference = middle of view - middle of box
+    difference = (width/float(2)) - (boxX + boxWidth/float(2))
+    # print(difference)
+    if (-75 < difference < 75):
+        return 0
 
-width = 863/float(2)
+    return difference
+    # if difference > 0:
+    #     return -1 # L
+    # elif difference < 0:
+    #     return 1 # R
+    # else:
+    #     return 0 # 0
 
 #List of possible classifiers for GoPro recognition
 classfiers = [
@@ -58,7 +64,7 @@ arduino = None
 try:
     arduino = rotate.connect()
 
-    countSent = 0
+    count = 0
 
     while True:
         # Capture frame-by-frame
@@ -75,20 +81,17 @@ try:
             flags=cv2.CASCADE_SCALE_IMAGE
         )
 
-        # countSent += 1
-        # if countSent == 5:
-        #     countSent = 4
-        if len(bodies) > 0:
-            # countSent = 0
-            (x,y,w,h) = sorted(bodies, key=lambda x: x[2], reverse=True)[0]
-            diff = calculateMiddle(width, x, w)
-            angle = rotationCoordinates(diff)
-            try:
-                # Thread(target = rotate.rotate, args =(arduino, angle)).start()
-                rotate.rotate(arduino, angle)
-            except:
-                print("unable to thread")
+        count += 1
 
+        if len(bodies) > 0:
+            (x,y,w,h) = sorted(bodies, key=lambda x: x[2], reverse=True)[0]
+            averages.append(rotateDegrees(x, w))
+
+        if count > 10:
+            if len(averages) > 0:
+                newSum = sum(averages)
+                rotate.rotate(arduino, newSum)
+                averages.pop(0)
         # Draw a rectangle around the bodies
         for (x, y, w, h) in bodies:
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
