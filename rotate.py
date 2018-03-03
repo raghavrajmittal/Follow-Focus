@@ -12,7 +12,7 @@ def rotate(arduino, angle):
         return
 
     print("writing:", angle)
-    arduino.write(str(angle).encode())
+    arduino.write((str(angle)+"\n").encode())
 
 def connect(port = '/dev/cu.usbserial-DN01DQRE'):
     global arduino
@@ -23,14 +23,14 @@ def connect(port = '/dev/cu.usbserial-DN01DQRE'):
 def disconnect(arduino):
     arduino.close()
 
-def exit_handler():
-    global arduino
-
-    if arduino:
-        disconnect(arduino)
-
-atexit.register(exit_handler)
-# 
+# def exit_handler():
+#     global arduino
+#
+#     if arduino:
+#         disconnect(arduino)
+#
+# atexit.register(exit_handler)
+#
 # pi = connect()
 # while True:
 #

@@ -5,15 +5,16 @@ from goprocam import constants
 import urllib.request
 import rotate
 from threading import Thread
+import traceback
 
 def calculateMiddle(width, boxX, boxWidth):
     return width - (boxX + boxWidth/float(2))
 
 def rotationCoordinates(angle):
     const = 4
-    if angle > 0:
+    if angle > 20:
         return "L" + str(int(abs(angle/float(const))))
-    else:
+    elif angle < -20:
         return "R" + str(int(abs(angle/float(const))))
 
 width = 863/float(2)
@@ -52,48 +53,58 @@ gpCam.gpControlSet(constants.Stream.BIT_RATE, constants.Stream.BitRate.B2_4Mbps)
 #Read media buffer from udp port
 cap = cv2.VideoCapture("udp://127.0.0.1:10000")
 
-arduino = rotate.connect()
+arduino = None
 
-countSent = 0
+try:
+    arduino = rotate.connect()
 
-while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
+    countSent = 0
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    while True:
+        # Capture frame-by-frame
+        ret, frame = cap.read()
 
-    #Classifier attributes
-    bodies = bodyCascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(80, 80),
-        flags=cv2.CASCADE_SCALE_IMAGE
-    )
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    countSent += 1
-    if countSent == 5:
-        countSent = 4
+        #Classifier attributes
+        bodies = bodyCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(80, 80),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
+
+        # countSent += 1
+        # if countSent == 5:
+        #     countSent = 4
         if len(bodies) > 0:
-            countSent = 0
+            # countSent = 0
             (x,y,w,h) = sorted(bodies, key=lambda x: x[2], reverse=True)[0]
             diff = calculateMiddle(width, x, w)
             angle = rotationCoordinates(diff)
             try:
-                Thread(target = rotate.rotate, args =(arduino, angle)).start()
+                # Thread(target = rotate.rotate, args =(arduino, angle)).start()
+                rotate.rotate(arduino, angle)
             except:
                 print("unable to thread")
 
-    # Draw a rectangle around the bodies
-    for (x, y, w, h) in bodies:
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-    # Display the resulting frame
-    cv2.imshow("GoPro OpenCV", frame)
+        # Draw a rectangle around the bodies
+        for (x, y, w, h) in bodies:
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        # Display the resulting frame
+        cv2.imshow("GoPro OpenCV", frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-# When everything is done, release the capture
-cap.release()
-cv2.destroyAllWindows()
-rotate.disconnect(arduino)
+    # When everything is done, release the capture
+    cap.release()
+    cv2.destroyAllWindows()
+    rotate.disconnect(arduino)
+
+except Exception:
+    traceback.print_exc()
+    print("closing connection")
+    if arduino:
+        rotate.disconnect(arduino)
