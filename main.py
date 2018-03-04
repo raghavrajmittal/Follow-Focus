@@ -62,7 +62,7 @@ cap = cv2.VideoCapture("udp://127.0.0.1:10000")
 arduino = None
 
 try:
-    Thread(target = speech.run).start()
+    # Thread(target = speech.run).start()
     # speech.run()
     arduino = arduino_servo.connect()
 
