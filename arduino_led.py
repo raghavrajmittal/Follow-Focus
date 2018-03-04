@@ -5,11 +5,9 @@ import atexit
 arduino = None
 
 def start_timer(arduino):
-    print("hola")
     arduino.write(("S\n").encode())
 
 def stop_timer(arduino):
-    print("hey")
     arduino.write(("Z\n").encode())
 
 def connect(port = '/dev/cu.usbserial-DN01DKJZ'):

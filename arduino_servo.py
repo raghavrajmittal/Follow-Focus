@@ -5,7 +5,7 @@ import atexit
 arduino = None
 
 def rotate(arduino, direction):
-    print(direction)
+    # print(direction)
     if direction > 0:
         arduino.write(("L\n").encode())
 

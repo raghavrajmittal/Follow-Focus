@@ -6,7 +6,7 @@ import urllib.request
 import arduino_servo
 from threading import Thread
 import traceback
-
+import speech
 averages = []
 
 def rotateDegrees(boxX, boxWidth, width = 864):
@@ -62,6 +62,8 @@ cap = cv2.VideoCapture("udp://127.0.0.1:10000")
 arduino = None
 
 try:
+    Thread(target = speech.run).start()
+    # speech.run()
     arduino = arduino_servo.connect()
 
     count = 0
@@ -77,7 +79,7 @@ try:
             gray,
             scaleFactor=1.1,
             minNeighbors=5,
-            minSize=(80, 80),
+            minSize=(50, 50),
             flags=cv2.CASCADE_SCALE_IMAGE
         )
 
@@ -86,15 +88,17 @@ try:
         if len(bodies) > 0:
             (x,y,w,h) = sorted(bodies, key=lambda x: x[2], reverse=True)[0]
             averages.append(rotateDegrees(x, w))
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
         if count > 10:
             if len(averages) > 0:
                 newSum = sum(averages)
                 arduino_servo.rotate(arduino, newSum)
                 averages.pop(0)
+
         # Draw a rectangle around the bodies
-        for (x, y, w, h) in bodies:
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        #for (x, y, w, h) in bodies:
+        #    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
         # Display the resulting frame
         cv2.imshow("GoPro OpenCV", frame)
 
